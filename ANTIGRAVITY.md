@@ -11,7 +11,7 @@ GitHub repo：https://github.com/changyiwu/drink-ordering-gas.git
 ## Obsidian 對應筆記
 
 Obsidian vault：C:\Users\chang\我的雲端硬碟\2ndbrain
-專案駕駛艙：C:\Users\chang\我的雲端硬碟\2ndbrain\Projects\drink-ordering-gas.md
+專案駕駛艙：C:\Users\chang\我的雲端硬碟\2ndbrain\drink-ordering-gas-專案駕駛艙.md
 
 ## 工作規則
 
