@@ -111,3 +111,34 @@ function ssTimeZoneSafe() {
     return 'Asia/Taipei';
   }
 }
+
+/**
+ * 刪除訂單
+ * @param {string} timestamp 時間戳記
+ * @param {string} name 訂購者姓名
+ */
+function deleteOrder(timestamp, name) {
+  try {
+    var sheet = getSheet();
+    var lastRow = sheet.getLastRow();
+    if (lastRow <= 1) {
+      return { success: false, error: '沒有訂單可以刪除。' };
+    }
+    
+    var data = sheet.getRange(2, 1, lastRow - 1, 6).getValues();
+    var timeZone = ssTimeZoneSafe();
+    
+    for (var i = 0; i < data.length; i++) {
+      var rowTime = data[i][0] instanceof Date ? Utilities.formatDate(data[i][0], timeZone, 'yyyy/MM/dd HH:mm:ss') : String(data[i][0]);
+      var rowName = String(data[i][1]);
+      
+      if (rowTime === timestamp && rowName === name) {
+        sheet.deleteRow(i + 2); // 標題列在第1列，數據從第2列(索引0)開始
+        return { success: true };
+      }
+    }
+    return { success: false, error: '找不到相符的訂單項目。' };
+  } catch (error) {
+    return { success: false, error: error.toString() };
+  }
+}

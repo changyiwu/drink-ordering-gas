@@ -456,13 +456,14 @@
 
     /* 載入動畫 */
     .spinner {
-      border: 3px solid rgba(141, 110, 99, 0.1);
-      width: 24px;
-      height: 24px;
+      border: 2px solid rgba(141, 110, 99, 0.1);
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       border-left-color: var(--primary);
       animation: spin 1s linear infinite;
       display: inline-block;
+      vertical-align: middle;
     }
 
     .spinner-large {
@@ -471,6 +472,33 @@
       border-width: 4px;
       margin: 40px auto;
       display: block;
+    }
+
+    /* 刪除按鈕樣式 */
+    .delete-btn {
+      background: transparent;
+      border: none;
+      color: #d84315; /* 暖陽橘紅，與刪除動作吻合 */
+      cursor: pointer;
+      font-size: 14px;
+      opacity: 0.5;
+      transition: var(--transition);
+      padding: 4px 6px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .delete-btn:hover:not(:disabled) {
+      opacity: 1;
+      background: rgba(216, 67, 21, 0.1);
+    }
+
+    .delete-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
     }
 
     @keyframes spin {
@@ -866,7 +894,16 @@
           <div class="order-card">
             <div class="order-card-header">
               <span class="order-name">${escapeHtml(order.name)}</span>
-              <span class="order-time">${escapeHtml(displayTime)}</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="order-time">${escapeHtml(displayTime)}</span>
+                <button class="delete-btn" 
+                        title="刪除此訂單" 
+                        data-timestamp="${escapeHtml(order.timestamp)}" 
+                        data-name="${escapeHtml(order.name)}" 
+                        onclick="confirmDelete(this)">
+                  🗑️
+                </button>
+              </div>
             </div>
             <div class="order-details">
               <span class="order-drink">${escapeHtml(order.drink)}</span>
@@ -914,6 +951,51 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+    }
+
+    // 刪除按鈕二次確認
+    function confirmDelete(button) {
+      const timestamp = button.getAttribute("data-timestamp");
+      const name = button.getAttribute("data-name");
+      if (confirm(`確定要刪除「${name}」的這筆訂單嗎？`)) {
+        deleteOrderOnBackend(timestamp, name, button);
+      }
+    }
+
+    // 執行刪除訂單
+    function deleteOrderOnBackend(timestamp, name, button) {
+      // 顯示載入動畫並停用按鈕
+      button.disabled = true;
+      const originalContent = button.innerHTML;
+      button.innerHTML = '<span class="spinner" style="width: 12px; height: 12px; border-width: 2px;"></span>';
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            if (response && response.success) {
+              showToast("🗑️ 訂單已成功刪除！");
+              fetchOrders();
+            } else {
+              showToast("❌ 刪除失敗: " + (response.error || "未知錯誤"), "error");
+              button.disabled = false;
+              button.innerHTML = originalContent;
+            }
+          })
+          .withFailureHandler(function(err) {
+            showToast("❌ 連線失敗，請稍後重試", "error");
+            button.disabled = false;
+            button.innerHTML = originalContent;
+            console.error(err);
+          })
+          .deleteOrder(timestamp, name);
+      } else {
+        // 本地測試 Mock 刪除
+        setTimeout(() => {
+          mockOrders = mockOrders.filter(order => !(order.timestamp === timestamp && order.name === name));
+          showToast("⚠️ 本地測試環境：模擬刪除成功");
+          renderOrders(mockOrders);
+        }, 800);
+      }
     }
 
     // ==========================================
