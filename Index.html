@@ -501,6 +501,17 @@
       opacity: 0.5;
     }
 
+    /* 一鍵清除按鈕樣式 */
+    .delete-all-btn {
+      border-color: rgba(216, 67, 21, 0.3) !important;
+      color: #d84315 !important;
+    }
+
+    .delete-all-btn:hover:not(:disabled) {
+      background: rgba(216, 67, 21, 0.08) !important;
+      border-color: #d84315 !important;
+    }
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
@@ -681,9 +692,14 @@
         <section class="card">
           <div class="order-list-header">
             <div class="card-title" style="margin-bottom: 0; border: none; padding-bottom: 0;">📋 目前訂購情形</div>
-            <button class="refresh-btn" onclick="fetchOrders(true)">
-              <span>🔄 重新整理</span>
-            </button>
+            <div style="display: flex; gap: 8px;">
+              <button id="deleteAllBtn" class="refresh-btn delete-all-btn" onclick="handleDeleteAll()">
+                <span>💥 一鍵清除全部</span>
+              </button>
+              <button class="refresh-btn" onclick="fetchOrders(true)">
+                <span>🔄 重新整理</span>
+              </button>
+            </div>
           </div>
           
           <!-- 訂單卡片載入處 -->
@@ -700,8 +716,19 @@
   <div id="toast" class="toast"></div>
 
   <script>
+    // 取得或生成唯一的 User ID
+    let currentUserId = '';
+    function initUserId() {
+      currentUserId = localStorage.getItem("drink_order_userid");
+      if (!currentUserId) {
+        currentUserId = "usr_" + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+        localStorage.setItem("drink_order_userid", currentUserId);
+      }
+    }
+
     // 頁面初始化
     document.addEventListener("DOMContentLoaded", function() {
+      initUserId();
       detectInAppBrowser();
       loadSavedName();
       fetchOrders();
@@ -764,7 +791,8 @@
         drink: drinkInput.value.trim(),
         cups: parseInt(cupsInput.value) || 1,
         sugar: sugar,
-        ice: ice
+        ice: ice,
+        userId: currentUserId // 夾帶使用者識別碼
       };
 
       if (!orderData.name || !orderData.drink) {
@@ -890,19 +918,25 @@
           // 若格式不合則保持原樣
         }
 
+        // 只有自己建立的訂單，或者是未綁定識別碼的舊訂單，才顯示刪除按鈕
+        const isOwnOrder = !order.userId || order.userId === currentUserId;
+        const deleteButtonHtml = isOwnOrder ? `
+          <button class="delete-btn" 
+                  title="刪除此訂單" 
+                  data-timestamp="${escapeHtml(order.timestamp)}" 
+                  data-name="${escapeHtml(order.name)}" 
+                  onclick="confirmDelete(this)">
+            🗑️
+          </button>
+        ` : '';
+
         html += `
           <div class="order-card">
             <div class="order-card-header">
               <span class="order-name">${escapeHtml(order.name)}</span>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span class="order-time">${escapeHtml(displayTime)}</span>
-                <button class="delete-btn" 
-                        title="刪除此訂單" 
-                        data-timestamp="${escapeHtml(order.timestamp)}" 
-                        data-name="${escapeHtml(order.name)}" 
-                        onclick="confirmDelete(this)">
-                  🗑️
-                </button>
+                ${deleteButtonHtml}
               </div>
             </div>
             <div class="order-details">
@@ -987,13 +1021,64 @@
             button.innerHTML = originalContent;
             console.error(err);
           })
-          .deleteOrder(timestamp, name);
+          .deleteOrder(timestamp, name, currentUserId); // 帶入使用者識別碼
       } else {
         // 本地測試 Mock 刪除
         setTimeout(() => {
           mockOrders = mockOrders.filter(order => !(order.timestamp === timestamp && order.name === name));
           showToast("⚠️ 本地測試環境：模擬刪除成功");
           renderOrders(mockOrders);
+        }, 800);
+      }
+    }
+
+    // 一鍵清除全部訂單 (需密碼)
+    function handleDeleteAll() {
+      const password = prompt("🚨 警告：此操作將清除所有點購紀錄！\n請輸入管理密碼以繼續：");
+      if (password === null) return; // 使用者取消
+      
+      const cleanPass = password.trim();
+      if (!cleanPass) {
+        showToast("❌ 密碼不能為空！", "error");
+        return;
+      }
+
+      const btn = document.getElementById("deleteAllBtn");
+      const originalContent = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span><span class="spinner" style="width: 12px; height: 12px; border-width: 2px;"></span> 處理中...</span>';
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+            if (response && response.success) {
+              showToast("💥 訂單看板已全部清空！");
+              fetchOrders();
+            } else {
+              showToast("❌ 錯誤: " + (response.error || "密碼錯誤"), "error");
+            }
+          })
+          .withFailureHandler(function(err) {
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+            showToast("❌ 清除失敗，連線異常", "error");
+            console.error(err);
+          })
+          .deleteAllOrders(cleanPass);
+      } else {
+        // 本地測試 Mock 一鍵清除
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.innerHTML = originalContent;
+          if (cleanPass === "sljh2163") {
+            mockOrders = [];
+            showToast("⚠️ 本地測試環境：模擬清空成功");
+            renderOrders(mockOrders);
+          } else {
+            showToast("❌ 密碼錯誤，拒絕清除！", "error");
+          }
         }, 800);
       }
     }
@@ -1023,7 +1108,8 @@
         drink: order.drink,
         cups: order.cups,
         sugar: order.sugar,
-        ice: order.ice
+        ice: order.ice,
+        userId: currentUserId // 模擬環境中帶入自身 userId
       };
       
       mockOrders.unshift(newOrder);

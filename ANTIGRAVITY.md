@@ -4,7 +4,7 @@
 
 專案名稱：drink-ordering-gas
 專案用途：Google Apps Script 飲料線上訂購系統，配合試算表儲存訂單與讀取顯示
-主要工作目錄：C:\Users\chang\我的雲端硬碟\agents\antigravity\drink-ordering-gas
+主要工作目錄：C:\Users\chang\我的雲端硬碟\agents\drink-ordering-gas
 GitHub repo：https://github.com/changyiwu/drink-ordering-gas.git
 預設 branch：main
 
