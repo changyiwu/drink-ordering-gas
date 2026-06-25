@@ -512,6 +512,17 @@
       border-color: #d84315 !important;
     }
 
+    /* QR Code 掃碼登入卡片 */
+    .qrcode-card {
+      margin-top: 0px;
+    }
+
+    @media (max-width: 991px) {
+      .qrcode-card {
+        display: none !important;
+      }
+    }
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
@@ -591,9 +602,10 @@
     <!-- 主版面 -->
     <div class="main-grid">
       
-      <!-- 左欄：訂購表單 -->
-      <section class="card">
-        <div class="card-title">✍️ 填寫訂購資料</div>
+      <!-- 左欄：訂購表單與 QR Code 容器 -->
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+        <section class="card">
+          <div class="card-title">✍️ 填寫訂購資料</div>
         
         <form id="orderForm" onsubmit="handleFormSubmit(event)">
           <!-- 姓名 -->
@@ -667,6 +679,20 @@
         </form>
       </section>
 
+        <!-- QR Code 掃碼登入區 (僅桌機/大螢幕顯示) -->
+        <section class="card qrcode-card">
+          <div class="card-title" style="justify-content: center; border: none; padding-bottom: 0; margin-bottom: 10px;">📱 手機掃碼同步點餐</div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4; text-align: center;">
+            使用手機掃描下方 QR Code，即可直接同步此瀏覽器的點餐身分，方便用手機查看與刪除您的訂單！
+          </p>
+          <div style="text-align: center;">
+            <div id="qrcodeImgContainer" style="background: white; padding: 12px; display: inline-block; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+              <span class="spinner" style="width: 16px; height: 16px;"></span>
+            </div>
+          </div>
+        </section>
+      </div>
+
       <!-- 右欄：訂單看板與統計 -->
       <div style="display: flex; flex-direction: column; gap: 24px;">
         
@@ -716,19 +742,65 @@
   <div id="toast" class="toast"></div>
 
   <script>
-    // 取得或生成唯一的 User ID
+    // 取得或生成唯一的 User ID (支援從 URL ?uid= 參數同步)
     let currentUserId = '';
     function initUserId() {
-      currentUserId = localStorage.getItem("drink_order_userid");
-      if (!currentUserId) {
-        currentUserId = "usr_" + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+      // 1. 優先檢查 URL 查詢參數是否帶有 uid
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlUid = urlParams.get('uid');
+      
+      if (urlUid) {
+        currentUserId = urlUid.trim();
         localStorage.setItem("drink_order_userid", currentUserId);
+        
+        // 2. 清除網址列的參數，保持網址整潔
+        try {
+          const cleanUrl = window.location.origin + window.location.pathname;
+          window.history.replaceState({}, document.title, cleanUrl);
+        } catch (e) {
+          console.warn("無法清除網址參數", e);
+        }
+      } else {
+        // 3. 正常讀取 localStorage 或生成新的
+        currentUserId = localStorage.getItem("drink_order_userid");
+        if (!currentUserId) {
+          currentUserId = "usr_" + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+          localStorage.setItem("drink_order_userid", currentUserId);
+        }
       }
+    }
+
+    // 動態生成帶有自身 uid 的手機登入 QR Code
+    function generateQrCode() {
+      const qrContainer = document.getElementById("qrcodeImgContainer");
+      if (!qrContainer) return;
+      
+      // 建立包含 ?uid= 參數的手機登入網址
+      const baseUrl = window.location.origin + window.location.pathname;
+      const targetUrl = baseUrl + "?uid=" + encodeURIComponent(currentUserId);
+      
+      // 使用穩定的 QR Code API 產生 150x150 圖片
+      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(targetUrl)}`;
+      
+      const img = new Image();
+      img.onload = function() {
+        qrContainer.innerHTML = '';
+        qrContainer.appendChild(img);
+      };
+      img.onerror = function() {
+        qrContainer.innerHTML = '<span style="font-size:11px;color:var(--error);">❌ QR Code 載入失敗</span>';
+      };
+      img.src = qrApiUrl;
+      img.alt = "Scan to log in";
+      img.width = 150;
+      img.height = 150;
+      img.style.display = "block";
     }
 
     // 頁面初始化
     document.addEventListener("DOMContentLoaded", function() {
       initUserId();
+      generateQrCode();
       detectInAppBrowser();
       loadSavedName();
       fetchOrders();
