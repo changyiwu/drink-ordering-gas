@@ -11,15 +11,15 @@ GitHub repo：https://github.com/changyiwu/drink-ordering-gas.git
 ## Obsidian 對應筆記
 
 Obsidian vault：C:\Users\chang\我的雲端硬碟\2ndbrain
-專案駕駛艙：C:\Users\chang\我的雲端硬碟\2ndbrain\drink-ordering-gas-專案駕駛艙.md
+Obsidian 筆記：drink-ordering-gas/專案工作流程.md（實體路徑：C:\Users\chang\我的雲端硬碟\2ndbrain\drink-ordering-gas\專案工作流程.md）
 
 ## 工作規則
 
 - 回應使用繁體中文。
 - 涉及檔案操作時回報完整產出位置。
 - 使用 PowerShell 語法。
-- 開工時讀本檔、讀 Obsidian 駕駛艙、檢查 Git 狀態（若已建立 repo）。
-- 收工時更新 Obsidian，必要時更新本檔。
+- 開工時讀本檔與 handoff.md、檢查 Git 狀態（若已建立 repo）。
+- 收工時更新 handoff.md 及 Obsidian 筆記，必要時更新本檔。
 - 不把每日流水帳寫進本檔。
 
 ## 不要做
