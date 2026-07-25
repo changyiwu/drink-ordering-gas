@@ -15,7 +15,6 @@ Google Apps Script 飲料線上訂購系統，配合試算表儲存訂單與讀�
 ## 資料夾結構
 - `agents.md`：專案藍圖（本檔）
 - `handoff.md`：跨 session / 跨電腦交接檔
-- `ANTIGRAVITY.md`：Antigravity 入口與相容設定
 - `Code.gs`：Google Apps Script 後端邏輯
 - `Index.html`：前端 UI 與互動邏輯
 - `README.md`：專案說明
@@ -31,5 +30,14 @@ Google Apps Script 飲料線上訂購系統，配合試算表儲存訂單與讀�
 ## 工作約定
 - 任何 Agent、任何電腦：**開工先讀 `handoff.md`，收工必更新 `handoff.md`**
 - 修改共用檔案前先讀最新內容，避免覆蓋其他 Agent 的變更
-- 所有回應與文件使用繁體中文
+- 所有回應與文件使用繁體中文；涉及檔案操作時回報完整產出位置
+- Windows 指令優先使用 PowerShell 語法
 - 修改前先確認計畫，優先保留原有資料結構
+- 不把每日流水帳寫進本檔
+
+## 安全與隱私
+
+- 不要 commit API key、token、密碼等敏感資料
+- 不要 commit NotebookLM 個人匯出清單或筆記本 ID 清單
+- 不要自動納入無關的 Git 變更
+- 不要儲存學生真名；正式資料只使用班級代號與座號
