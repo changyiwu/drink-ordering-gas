@@ -18,6 +18,7 @@ Google Apps Script 飲料線上訂購系統，配合試算表儲存訂單與讀�
 - `Code.gs`：Google Apps Script 後端邏輯
 - `Index.html`：前端 UI 與互動邏輯
 - `README.md`：專案說明
+- `飲料訂購程式試算表.gsheet`：繫結的 Google 試算表捷徑（GDrive 同步自動產生，已 gitignore；試算表 ID 只記在 `handoff.md`，不進 repo）
 
 ## 同步層級（本專案初始化至第 3 層級）
 

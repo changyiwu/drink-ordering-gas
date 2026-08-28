@@ -6,3 +6,6 @@ build/
 
 # 交接檔含真實電腦名與本機路徑，只走雲端硬碟同步，不進公開 repo
 handoff.md
+
+# Google Drive 試算表捷徑（本機雲端硬碟同步產生，不進 repo）
+*.gsheet
