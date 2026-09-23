@@ -3,7 +3,7 @@
 > 本檔為跨 Agent 通用的專案藍圖（AGENTS.md 開放標準）。任何 Agent 的每個 session 都應先讀本檔＋`handoff.md`。
 
 ## 專案簡介
-Google Apps Script 飲料線上訂購系統，配合試算表儲存訂單與讀取顯示。
+Google Apps Script 飲料線上訂購系統，前端採用同層 `drink-ordering-gh` 的五店訂購介面，後端維持 GAS 與繫結試算表。
 
 ## 關鍵時程
 - 無
@@ -11,12 +11,15 @@ Google Apps Script 飲料線上訂購系統，配合試算表儲存訂單與讀�
 ## 目標與路線圖
 - [x] 階段一：線上訂餐、試算表整合、個人刪除校驗、管理員一鍵清除、手機掃碼身分同步
 - [x] 階段二：依據 project-init 技能規範調整 Obsidian 專案工作流程筆記與 L1/L2/L3 結構
+- [x] 階段三：前端移植 `drink-ordering-gh` 五店介面，維持 GAS 試算表後端
 
 ## 資料夾結構
 - `AGENTS.md`：專案藍圖（本檔）
 - `handoff.md`：跨 session / 跨電腦交接檔
 - `Code.gs`：Google Apps Script 後端邏輯
-- `Index.html`：前端 UI 與互動邏輯
+- `Index.html`：打包後供 GAS 載入的前端 UI、菜單、樣式與素材
+- `tools/build_frontend.py`：從 `drink-ordering-gh` 打包前端的工具
+- `tools/gas_app.js`：前端對既有 GAS 函式的轉接邏輯
 - `README.md`：專案說明
 - `飲料訂購程式試算表.gsheet`：繫結的 Google 試算表捷徑（GDrive 同步自動產生，已 gitignore；試算表 ID 只記在 `handoff.md`，不進 repo）
 
@@ -43,6 +46,8 @@ Google Apps Script 飲料線上訂購系統，配合試算表儲存訂單與讀�
 ## 工作約定
 - 任何 Agent、任何電腦：**開工先讀 `handoff.md`，收工必更新 `handoff.md`**
 - 修改共用檔案前先讀最新內容，避免覆蓋其他 Agent 的變更
+- 前端異動先修改 `tools/gas_app.js` 或來源專案，再執行 `tools/build_frontend.py` 產生 `Index.html`；不要直接手改生成檔
+- 後端只有一張訂單表：新訂單的店家、容量與價格記在「飲料品項」欄；管理員清除會清掉所有店家的訂單，不能標成只清本頁
 - 所有回應與文件使用繁體中文；涉及檔案操作時回報完整產出位置
 - Windows 指令優先使用 PowerShell 語法
 - 修改前先確認計畫，優先保留原有資料結構
