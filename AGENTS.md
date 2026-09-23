@@ -47,6 +47,7 @@ Google Apps Script 飲料線上訂購系統，前端採用同層 `drink-ordering
 - 任何 Agent、任何電腦：**開工先讀 `handoff.md`，收工必更新 `handoff.md`**
 - 修改共用檔案前先讀最新內容，避免覆蓋其他 Agent 的變更
 - 前端異動先修改 `tools/gas_app.js` 或來源專案，再執行 `tools/build_frontend.py` 產生 `Index.html`；不要直接手改生成檔
+- GAS 模板內的 JavaScript 字串避免直接出現 `<?`；需要該字元組合時分段串接，再以 GAS 模板實測編譯
 - 後端只有一張訂單表：新訂單的店家、容量與價格記在「飲料品項」欄；管理員清除會清掉所有店家的訂單，不能標成只清本頁
 - 所有回應與文件使用繁體中文；涉及檔案操作時回報完整產出位置
 - Windows 指令優先使用 PowerShell 語法
